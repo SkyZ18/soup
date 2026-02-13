@@ -1,5 +1,6 @@
 package com.skyz.api.clientLogic.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.skyz.api.clientLogic.models.enums.Scope;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,8 +12,8 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Entity
-@Table(name = "T_SOUPCLIENT", schema = "SOUP")
-public class SoupClient {
+@Table(name = "T_SOUPUSER", schema = "SOUP")
+public class SoupUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "P_ID")
@@ -24,10 +25,11 @@ public class SoupClient {
     @Column(name = "LASTNAME", nullable = false)
     private String lastname;
 
-    @Column(name = "SCOPE")
-    private Scope scope;
+    @JsonIgnore
+    @Column(name = "PASSWORD", nullable = false)
+    private String password;
 
-    @OneToOne
-    @JoinColumn(name = "F_CLIENTID", referencedColumnName = "P_ID", nullable = false)
-    private SoupClientID clientID;
+    @Column(name = "SCOPE")
+    @Enumerated(EnumType.STRING)
+    private Scope scope;
 }
