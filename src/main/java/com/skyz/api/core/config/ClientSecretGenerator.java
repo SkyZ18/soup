@@ -1,4 +1,4 @@
-package com.skyz.api.clientLogic.config;
+package com.skyz.api.core.config;
 
 import java.security.SecureRandom;
 import java.util.Collections;
