@@ -1,13 +1,13 @@
 package com.skyz.api.core.interfaceAdapters.controllers;
 
 import com.skyz.api.core.businessLogic.services.ClientService;
-import com.skyz.api.core.interfaceAdapters.dtos.CreateClientDto;
+import com.skyz.api.core.interfaceAdapters.dtos.ClientWithIdAndPasswordDto;
+import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithAppDto;
+import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithoutAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientResponse;
+import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientWithoutAppResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/client")
@@ -21,9 +21,36 @@ public class ClientController {
 
     @PostMapping("/register")
     public ResponseEntity<CreateClientResponse> register(
-            @RequestBody CreateClientDto createClientDto
+            @RequestBody CreateClientWithAppDto createClientWithAppDto
     ) {
-        return clientService.createNewClientWithAppInfo(createClientDto)
+        return clientService.createNewClientWithAppInfo(createClientWithAppDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(RuntimeException::new);
+    }
+
+    @PostMapping("/register/noApp")
+    public ResponseEntity<CreateClientWithoutAppResponse> register(
+            @RequestBody CreateClientWithoutAppDto createClientWithoutAppDto
+    ) {
+        return clientService.createNewClientWithoutAppInfo(createClientWithoutAppDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(RuntimeException::new);
+    }
+
+    @PostMapping("/update/secret")
+    public ResponseEntity<String> updateSecret(
+            @RequestBody ClientWithIdAndPasswordDto updateClientWithIdDto
+    ) {
+        return clientService.rotateClientSecret(updateClientWithIdDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(RuntimeException::new);
+    }
+
+    @PostMapping("/app/unbind")
+    public ResponseEntity<String> unbindApp(
+            @RequestBody ClientWithIdAndPasswordDto unbindDto
+    ) {
+        return clientService.removeApplicationFromClient(unbindDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(RuntimeException::new);
     }
