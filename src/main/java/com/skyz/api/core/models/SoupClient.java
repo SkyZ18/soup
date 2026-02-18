@@ -26,8 +26,9 @@ public class SoupClient {
     @Column(name = "CLIENT_SECRET")
     private String clientSecret;
 
-    @Column(name = "REGISTERED_URI")
-    private String uri;
+    @OneToOne
+    @JoinColumn(name = "F_REGISTERED_APPLICATION", referencedColumnName = "P_ID")
+    private ApplicationMeta applicationMeta;
 
     @Column(name = "REGISTERED")
     private boolean registered;
@@ -38,4 +39,8 @@ public class SoupClient {
     @Column(name = "SCOPE")
     @Enumerated(EnumType.STRING)
     private Scope scope;
+
+    @ManyToOne
+    @JoinColumn(name = "F_COUNTRY_CODE", referencedColumnName = "P_ID")
+    private SoupClientMandator mandator;
 }
