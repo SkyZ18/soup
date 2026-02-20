@@ -23,6 +23,9 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,8 +55,13 @@ public class ClientService {
         this.clientIdGenerator = clientIdGenerator;
     }
 
+    public List<SoupClient> returnAllClientsWithSecret() {
+        return clientRepository.findAll();
+    }
+
     @Transactional
     public Optional<CreateClientResponse> createNewClientWithAppInfo(CreateClientWithAppDto dto) {
+        log.info("Starting client creation Process");
         ApplicationMeta application = applicationRepository.findByUri(dto.registerUri())
                 .orElseThrow(() -> new ApplicationNotRegisteredException(dto.registerUri()));
 
@@ -64,7 +72,7 @@ public class ClientService {
         SoupClientMandator mandator = mandatorRepository.findByCountry(dto.mandator())
                 .orElseThrow(() -> new MandatorNotFoundException(dto.mandator()));
 
-        SoupClient soupClient = SoupClient.builder()
+        SoupClient createdClient = SoupClient.builder()
                 .clientId(clientIdGenerator.generate())
                 .clientSecret(ClientSecretGenerator.generate())
                 .applicationMeta(application)
@@ -73,9 +81,10 @@ public class ClientService {
                 .mandator(mandator)
                 .build();
 
-        clientRepository.save(soupClient);
+        clientRepository.save(createdClient);
+        log.info("Client created: {}", createdClient.getClientId());
 
-        return Optional.of(soupClient)
+        return Optional.of(createdClient)
                 .map(soupClientResponseMapper);
     }
 
@@ -84,7 +93,7 @@ public class ClientService {
         SoupClientMandator mandator = mandatorRepository.findByCountry(dto.mandator())
                 .orElseThrow(() -> new MandatorNotFoundException(dto.mandator()));
 
-        SoupClient soupClient = SoupClient.builder()
+        SoupClient createdClient = SoupClient.builder()
                 .clientId(clientIdGenerator.generate())
                 .clientSecret(ClientSecretGenerator.generate())
                 .registered(false)
@@ -92,9 +101,9 @@ public class ClientService {
                 .mandator(mandator)
                 .build();
 
-        clientRepository.save(soupClient);
+        clientRepository.save(createdClient);
 
-        return Optional.of(soupClient)
+        return Optional.of(createdClient)
                 .map(soupClientResponseWithoutAppMapper);
     }
 
@@ -103,9 +112,9 @@ public class ClientService {
         if (
                 clientRepository.existsByClientIdAndClientSecret(dto.clientId(), dto.clientSecret())
         ) {
-            String secret = ClientSecretGenerator.generate();
-            clientRepository.updateClientSecretByClientId(dto.clientId(), secret);
-            return Optional.of("Client-secret updated. New secret " + secret + " for client: " + dto.clientId());
+            String newSecret = ClientSecretGenerator.generate();
+            clientRepository.updateClientSecretByClientId(dto.clientId(), newSecret);
+            return Optional.of("Client-secret updated. New secret " + newSecret + " for client: " + dto.clientId());
         }
 
         return Optional.of("ClientSecret does not match clientId. Please enter correct secret");

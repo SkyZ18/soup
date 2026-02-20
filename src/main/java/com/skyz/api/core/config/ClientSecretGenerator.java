@@ -1,10 +1,13 @@
 package com.skyz.api.core.config;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ClientSecretGenerator {
 
     private static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
@@ -16,6 +19,7 @@ public class ClientSecretGenerator {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     public static String generate() {
+        log.info("Client secret is being generated");
         StringBuilder pswd = new StringBuilder();
         pswd.append(LOWER.charAt(RANDOM.nextInt(LOWER.length())));
         pswd.append(UPPER.charAt(RANDOM.nextInt(UPPER.length())));

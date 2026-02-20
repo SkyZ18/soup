@@ -6,8 +6,11 @@ import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithoutAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientResponse;
 import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientWithoutAppResponse;
+import com.skyz.api.core.models.SoupClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/client")
@@ -17,6 +20,11 @@ public class ClientController {
 
     public ClientController(final ClientService clientService) {
         this.clientService = clientService;
+    }
+
+    @GetMapping("/getAll")
+    public List<SoupClient> getAll() {
+        return clientService.returnAllClientsWithSecret();
     }
 
     @PostMapping("/register")
