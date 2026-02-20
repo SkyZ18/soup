@@ -27,10 +27,8 @@ public class ApplicationService {
     }
 
     public Optional<CreateApplicationResponse> createNewApplication(CreateApplicationDto createApplicationDto) {
-        Optional<ApplicationMeta> foundApps = applicationRepository.findByUri(createApplicationDto.uri());
-
-        if(foundApps.isPresent()) {
-            throw new ApplicationAlreadyExistsException(foundApps.get().getUri());
+        if(applicationRepository.existsByUri(createApplicationDto.uri())) {
+            throw new ApplicationAlreadyExistsException(createApplicationDto.uri());
         }
 
         ApplicationMeta createdApp = ApplicationMeta.builder()

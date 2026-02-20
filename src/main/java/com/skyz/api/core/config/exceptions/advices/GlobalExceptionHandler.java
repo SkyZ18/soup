@@ -25,6 +25,13 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseBody
+    @ExceptionHandler(MandatorAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    String mandatorAlreadyExistsHandler(MandatorAlreadyExistsException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseBody
     @ExceptionHandler(ApplicationNotRegisteredException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     String applicationNotRegisteredHandler(ApplicationNotRegisteredException ex) {

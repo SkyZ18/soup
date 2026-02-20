@@ -46,5 +46,5 @@ public class SoupClient {
 
     @ManyToOne
     @JoinColumn(name = "F_COUNTRY_CODE", referencedColumnName = "P_ID")
-    private SoupClientMandator mandator;
+    private Mandator mandator;
 }

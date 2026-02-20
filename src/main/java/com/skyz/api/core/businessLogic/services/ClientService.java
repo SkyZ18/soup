@@ -9,6 +9,7 @@ import com.skyz.api.core.config.exceptions.ApplicationAlreadyRegisteredException
 import com.skyz.api.core.config.exceptions.ApplicationNotRegisteredException;
 import com.skyz.api.core.config.exceptions.ClientNotFoundException;
 import com.skyz.api.core.config.exceptions.MandatorNotFoundException;
+import com.skyz.api.core.interfaceAdapters.dtos.BindAppToClientDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithoutAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.ClientWithIdAndPasswordDto;
@@ -18,13 +19,12 @@ import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientResponse;
 import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientWithoutAppResponse;
 import com.skyz.api.core.models.ApplicationMeta;
 import com.skyz.api.core.models.SoupClient;
-import com.skyz.api.core.models.SoupClientMandator;
+import com.skyz.api.core.models.Mandator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,7 +69,7 @@ public class ClientService {
             throw new ApplicationAlreadyRegisteredException(application.getUri());
         }
 
-        SoupClientMandator mandator = mandatorRepository.findByCountry(dto.mandator())
+        Mandator mandator = mandatorRepository.findByCountryCode(dto.mandator())
                 .orElseThrow(() -> new MandatorNotFoundException(dto.mandator()));
 
         SoupClient createdClient = SoupClient.builder()
@@ -90,7 +90,7 @@ public class ClientService {
 
     @Transactional
     public Optional<CreateClientWithoutAppResponse> createNewClientWithoutAppInfo(CreateClientWithoutAppDto dto) {
-        SoupClientMandator mandator = mandatorRepository.findByCountry(dto.mandator())
+        Mandator mandator = mandatorRepository.findByCountryCode(dto.mandator())
                 .orElseThrow(() -> new MandatorNotFoundException(dto.mandator()));
 
         SoupClient createdClient = SoupClient.builder()
@@ -128,5 +128,16 @@ public class ClientService {
         clientRepository.updateApplicationMetaAndRegisteredByClientId(client.getClientId(), null, false);
 
         return Optional.of("Application unbound from client: " + client.getClientId());
+    }
+
+    public Optional<String> bindApplicationToClient(BindAppToClientDto dto) {
+        SoupClient client = clientRepository.findByClientIdAndClientSecret(dto.clientId(), dto.clientSecret())
+                .orElseThrow(() -> new ClientNotFoundException(dto.clientId()));
+
+        ApplicationMeta application = applicationRepository.findByUri(dto.appUri()).orElseThrow(() -> new Application);
+
+        client.setApplicationMeta();
+
+        return Optional.of("Application " + dto.appUri() + "bound to client: " + dto.clientId());
     }
 }

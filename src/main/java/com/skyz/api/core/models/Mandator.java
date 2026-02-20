@@ -10,8 +10,8 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Entity
-@Table(name = "T_SOUPCLIENT_MANDATOR", schema = "SOUP")
-public class SoupClientMandator {
+@Table(name = "T_MANDATOR", schema = "SOUP")
+public class Mandator {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

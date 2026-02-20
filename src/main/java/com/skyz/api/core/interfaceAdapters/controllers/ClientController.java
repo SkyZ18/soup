@@ -1,6 +1,7 @@
 package com.skyz.api.core.interfaceAdapters.controllers;
 
 import com.skyz.api.core.businessLogic.services.ClientService;
+import com.skyz.api.core.interfaceAdapters.dtos.BindAppToClientDto;
 import com.skyz.api.core.interfaceAdapters.dtos.ClientWithIdAndPasswordDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithoutAppDto;
@@ -52,6 +53,13 @@ public class ClientController {
         return clientService.rotateClientSecret(updateClientWithIdDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(RuntimeException::new);
+    }
+
+    @PostMapping("/app/bind")
+    public ResponseEntity<String> bindApp(
+            @RequestBody BindAppToClientDto bindAppToClientDto
+    ) {
+        return clientService.bindApplicationToClient(bindAppToClientDto);
     }
 
     @PostMapping("/app/unbind")
