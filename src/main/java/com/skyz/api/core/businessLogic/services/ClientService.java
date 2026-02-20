@@ -5,10 +5,8 @@ import com.skyz.api.core.businessLogic.repositories.ClientRepository;
 import com.skyz.api.core.businessLogic.repositories.MandatorRepository;
 import com.skyz.api.core.config.ClientIdGenerator;
 import com.skyz.api.core.config.ClientSecretGenerator;
-import com.skyz.api.core.config.exceptions.ApplicationAlreadyRegisteredException;
-import com.skyz.api.core.config.exceptions.ApplicationNotRegisteredException;
-import com.skyz.api.core.config.exceptions.ClientNotFoundException;
-import com.skyz.api.core.config.exceptions.MandatorNotFoundException;
+import com.skyz.api.core.config.exceptions.*;
+import com.skyz.api.core.interfaceAdapters.dtos.BindAppToClientDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithoutAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.ClientWithIdAndPasswordDto;
@@ -18,11 +16,13 @@ import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientResponse;
 import com.skyz.api.core.interfaceAdapters.dtos.responses.CreateClientWithoutAppResponse;
 import com.skyz.api.core.models.ApplicationMeta;
 import com.skyz.api.core.models.SoupClient;
-import com.skyz.api.core.models.SoupClientMandator;
+import com.skyz.api.core.models.Mandator;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,8 +52,17 @@ public class ClientService {
         this.clientIdGenerator = clientIdGenerator;
     }
 
+    public Optional<List<SoupClient>> returnAllClientsWithSecret() {
+        return Optional.of(clientRepository.findAll());
+    }
+
+    public Optional<List<SoupClient>> returnAllClientsWithSecretByRegistered(boolean registered) {
+        return Optional.of(clientRepository.findByRegistered(registered));
+    }
+
     @Transactional
     public Optional<CreateClientResponse> createNewClientWithAppInfo(CreateClientWithAppDto dto) {
+        log.info("Starting client creation Process");
         ApplicationMeta application = applicationRepository.findByUri(dto.registerUri())
                 .orElseThrow(() -> new ApplicationNotRegisteredException(dto.registerUri()));
 
@@ -61,10 +70,10 @@ public class ClientService {
             throw new ApplicationAlreadyRegisteredException(application.getUri());
         }
 
-        SoupClientMandator mandator = mandatorRepository.findByCountry(dto.mandator())
+        Mandator mandator = mandatorRepository.findByCountryCode(dto.mandator())
                 .orElseThrow(() -> new MandatorNotFoundException(dto.mandator()));
 
-        SoupClient soupClient = SoupClient.builder()
+        SoupClient createdClient = SoupClient.builder()
                 .clientId(clientIdGenerator.generate())
                 .clientSecret(ClientSecretGenerator.generate())
                 .applicationMeta(application)
@@ -73,18 +82,19 @@ public class ClientService {
                 .mandator(mandator)
                 .build();
 
-        clientRepository.save(soupClient);
+        clientRepository.save(createdClient);
+        log.info("Client created: {}", createdClient.getClientId());
 
-        return Optional.of(soupClient)
+        return Optional.of(createdClient)
                 .map(soupClientResponseMapper);
     }
 
     @Transactional
     public Optional<CreateClientWithoutAppResponse> createNewClientWithoutAppInfo(CreateClientWithoutAppDto dto) {
-        SoupClientMandator mandator = mandatorRepository.findByCountry(dto.mandator())
+        Mandator mandator = mandatorRepository.findByCountryCode(dto.mandator())
                 .orElseThrow(() -> new MandatorNotFoundException(dto.mandator()));
 
-        SoupClient soupClient = SoupClient.builder()
+        SoupClient createdClient = SoupClient.builder()
                 .clientId(clientIdGenerator.generate())
                 .clientSecret(ClientSecretGenerator.generate())
                 .registered(false)
@@ -92,9 +102,9 @@ public class ClientService {
                 .mandator(mandator)
                 .build();
 
-        clientRepository.save(soupClient);
+        clientRepository.save(createdClient);
 
-        return Optional.of(soupClient)
+        return Optional.of(createdClient)
                 .map(soupClientResponseWithoutAppMapper);
     }
 
@@ -103,9 +113,9 @@ public class ClientService {
         if (
                 clientRepository.existsByClientIdAndClientSecret(dto.clientId(), dto.clientSecret())
         ) {
-            String secret = ClientSecretGenerator.generate();
-            clientRepository.updateClientSecretByClientId(dto.clientId(), secret);
-            return Optional.of("Client-secret updated. New secret " + secret + " for client: " + dto.clientId());
+            String newSecret = ClientSecretGenerator.generate();
+            clientRepository.updateClientSecretByClientId(dto.clientId(), newSecret);
+            return Optional.of("Client-secret updated. New secret " + newSecret + " for client: " + dto.clientId());
         }
 
         return Optional.of("ClientSecret does not match clientId. Please enter correct secret");
@@ -119,5 +129,24 @@ public class ClientService {
         clientRepository.updateApplicationMetaAndRegisteredByClientId(client.getClientId(), null, false);
 
         return Optional.of("Application unbound from client: " + client.getClientId());
+    }
+
+    public Optional<String> bindApplicationToClient(BindAppToClientDto dto) {
+        SoupClient client = clientRepository.findByClientIdAndClientSecret(dto.clientId(), dto.clientSecret())
+                .orElseThrow(() -> new ClientNotFoundException(dto.clientId()));
+
+        if(client.isRegistered()) {
+            throw new ClientAlreadyRegisteredException();
+        }
+
+        ApplicationMeta application = applicationRepository.findByUri(dto.appUri())
+                .orElseThrow(() -> new ApplicationNotRegisteredException(dto.appUri()));
+
+        client.setApplicationMeta(application);
+        client.setRegistered(true);
+
+        clientRepository.save(client);
+
+        return Optional.of("Application \"" + dto.appUri() + "\" bound to client: " + dto.clientId());
     }
 }

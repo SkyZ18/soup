@@ -10,17 +10,17 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Entity
-@Table(name = "T_SOUPCLIENT_MANDATOR", schema = "SOUP")
-public class SoupClientMandator {
+@Table(name = "T_MANDATOR", schema = "SOUP")
+public class Mandator {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "P_ID")
+    @Column(name = "P_ID", nullable = false)
     private Long id;
 
-    @Column(name = "COUNTRY")
+    @Column(name = "COUNTRY", nullable = false)
     private String country;
 
-    @Column(name = "COUNTRY_CODE")
+    @Column(name = "COUNTRY_CODE", nullable = false)
     private String countryCode;
 }

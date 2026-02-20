@@ -1,9 +1,6 @@
 package com.skyz.api.core.config.exceptions.advices;
 
-import com.skyz.api.core.config.exceptions.ApplicationAlreadyRegisteredException;
-import com.skyz.api.core.config.exceptions.ApplicationNotRegisteredException;
-import com.skyz.api.core.config.exceptions.ClientNotFoundException;
-import com.skyz.api.core.config.exceptions.MandatorNotFoundException;
+import com.skyz.api.core.config.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +14,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApplicationAlreadyRegisteredException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     String applicationAlreadyRegisteredHandler(ApplicationAlreadyRegisteredException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseBody
+    @ExceptionHandler(ApplicationAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    String applicationAlreadyExistsHandler(ApplicationAlreadyExistsException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseBody
+    @ExceptionHandler(MandatorAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    String mandatorAlreadyExistsHandler(MandatorAlreadyExistsException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseBody
+    @ExceptionHandler(ClientAlreadyRegisteredException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    String clientAlreadyRegisteredHandler(ClientAlreadyRegisteredException ex) {
         return ex.getMessage();
     }
 
@@ -38,6 +56,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ClientNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     String clientNotFoundHandler(ClientNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseBody
+    @ExceptionHandler(InvalidMandatorException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    String invalidMandatorHandler(InvalidMandatorException ex) {
         return ex.getMessage();
     }
 }

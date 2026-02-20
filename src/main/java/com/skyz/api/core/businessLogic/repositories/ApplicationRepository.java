@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface ApplicationRepository extends JpaRepository<ApplicationMeta, Long> {
     Optional<ApplicationMeta> findByUri(String s);
+
+    boolean existsByUri(String uri);
 }
