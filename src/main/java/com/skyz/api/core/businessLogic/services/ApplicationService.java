@@ -26,15 +26,15 @@ public class ApplicationService {
         this.applicationResponseMapper = applicationResponseMapper;
     }
 
-    public Optional<CreateApplicationResponse> createNewApplication(CreateApplicationDto createApplicationDto) {
-        if(applicationRepository.existsByUri(createApplicationDto.uri())) {
-            throw new ApplicationAlreadyExistsException(createApplicationDto.uri());
+    public Optional<CreateApplicationResponse> createNewApplication(CreateApplicationDto dto) {
+        if(applicationRepository.existsByUri(dto.uri())) {
+            throw new ApplicationAlreadyExistsException(dto.uri());
         }
 
         ApplicationMeta createdApp = ApplicationMeta.builder()
-                .name(createApplicationDto.name())
-                .uri(createApplicationDto.uri())
-                .type(createApplicationDto.type())
+                .name(dto.name())
+                .uri(dto.uri())
+                .type(dto.type())
                 .build();
 
         applicationRepository.save(createdApp);

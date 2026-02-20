@@ -32,6 +32,13 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseBody
+    @ExceptionHandler(ClientAlreadyRegisteredException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    String clientAlreadyRegisteredHandler(ClientAlreadyRegisteredException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseBody
     @ExceptionHandler(ApplicationNotRegisteredException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     String applicationNotRegisteredHandler(ApplicationNotRegisteredException ex) {
@@ -49,6 +56,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ClientNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     String clientNotFoundHandler(ClientNotFoundException ex) {
+        return ex.getMessage();
+    }
+
+    @ResponseBody
+    @ExceptionHandler(InvalidMandatorException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    String invalidMandatorHandler(InvalidMandatorException ex) {
         return ex.getMessage();
     }
 }

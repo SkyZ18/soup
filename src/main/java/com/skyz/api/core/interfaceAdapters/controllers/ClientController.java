@@ -24,8 +24,19 @@ public class ClientController {
     }
 
     @GetMapping("/getAll")
-    public List<SoupClient> getAll() {
-        return clientService.returnAllClientsWithSecret();
+    public ResponseEntity<List<SoupClient>> getAll() {
+        return clientService.returnAllClientsWithSecret()
+                .map(ResponseEntity::ok)
+                .orElseThrow(RuntimeException::new);
+    }
+
+    @GetMapping("/get")
+    public ResponseEntity<List<SoupClient>> getAll(
+            @RequestParam boolean registered
+    ) {
+        return clientService.returnAllClientsWithSecretByRegistered(registered)
+                .map(ResponseEntity::ok)
+                .orElseThrow(RuntimeException::new);
     }
 
     @PostMapping("/register")
@@ -59,7 +70,9 @@ public class ClientController {
     public ResponseEntity<String> bindApp(
             @RequestBody BindAppToClientDto bindAppToClientDto
     ) {
-        return clientService.bindApplicationToClient(bindAppToClientDto);
+        return clientService.bindApplicationToClient(bindAppToClientDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(RuntimeException::new);
     }
 
     @PostMapping("/app/unbind")

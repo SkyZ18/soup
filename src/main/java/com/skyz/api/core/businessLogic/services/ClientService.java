@@ -5,10 +5,7 @@ import com.skyz.api.core.businessLogic.repositories.ClientRepository;
 import com.skyz.api.core.businessLogic.repositories.MandatorRepository;
 import com.skyz.api.core.config.ClientIdGenerator;
 import com.skyz.api.core.config.ClientSecretGenerator;
-import com.skyz.api.core.config.exceptions.ApplicationAlreadyRegisteredException;
-import com.skyz.api.core.config.exceptions.ApplicationNotRegisteredException;
-import com.skyz.api.core.config.exceptions.ClientNotFoundException;
-import com.skyz.api.core.config.exceptions.MandatorNotFoundException;
+import com.skyz.api.core.config.exceptions.*;
 import com.skyz.api.core.interfaceAdapters.dtos.BindAppToClientDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithAppDto;
 import com.skyz.api.core.interfaceAdapters.dtos.CreateClientWithoutAppDto;
@@ -55,8 +52,12 @@ public class ClientService {
         this.clientIdGenerator = clientIdGenerator;
     }
 
-    public List<SoupClient> returnAllClientsWithSecret() {
-        return clientRepository.findAll();
+    public Optional<List<SoupClient>> returnAllClientsWithSecret() {
+        return Optional.of(clientRepository.findAll());
+    }
+
+    public Optional<List<SoupClient>> returnAllClientsWithSecretByRegistered(boolean registered) {
+        return Optional.of(clientRepository.findByRegistered(registered));
     }
 
     @Transactional
@@ -134,10 +135,18 @@ public class ClientService {
         SoupClient client = clientRepository.findByClientIdAndClientSecret(dto.clientId(), dto.clientSecret())
                 .orElseThrow(() -> new ClientNotFoundException(dto.clientId()));
 
-        ApplicationMeta application = applicationRepository.findByUri(dto.appUri()).orElseThrow(() -> new Application);
+        if(client.isRegistered()) {
+            throw new ClientAlreadyRegisteredException();
+        }
 
-        client.setApplicationMeta();
+        ApplicationMeta application = applicationRepository.findByUri(dto.appUri())
+                .orElseThrow(() -> new ApplicationNotRegisteredException(dto.appUri()));
 
-        return Optional.of("Application " + dto.appUri() + "bound to client: " + dto.clientId());
+        client.setApplicationMeta(application);
+        client.setRegistered(true);
+
+        clientRepository.save(client);
+
+        return Optional.of("Application \"" + dto.appUri() + "\" bound to client: " + dto.clientId());
     }
 }

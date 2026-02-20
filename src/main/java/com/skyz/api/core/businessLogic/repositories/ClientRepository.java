@@ -22,6 +22,8 @@ public interface ClientRepository extends JpaRepository<SoupClient, Long> {
     @Query("SELECT c.clientId FROM SoupClient c")
     List<String> findAllClientIds();
 
+    List<SoupClient> findByRegistered(boolean registered);
+
     Optional<SoupClient> findByClientIdAndClientSecret(String clientId, String clientSecret);
 
     @Modifying
@@ -38,4 +40,5 @@ public interface ClientRepository extends JpaRepository<SoupClient, Long> {
             @Param("applicationMeta") ApplicationMeta applicationMeta,
             @Param("registered") boolean registered
     );
+
 }
